@@ -1,0 +1,25 @@
+# Étape de construction
+FROM node:alpine as builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+COPY . .
+RUN npm run build:beta
+
+# Étape de production
+FROM nginx:1.21.1-alpine
+
+# Copie des fichiers du build
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Configuration de Nginx
+COPY nginx_beta.conf /etc/nginx/nginx.conf
+
+# Exposition des ports
+EXPOSE 80
+EXPOSE 443
+
+
+
+# Commande pour démarrer Nginx
+CMD ["nginx", "-g", "daemon off;"]
